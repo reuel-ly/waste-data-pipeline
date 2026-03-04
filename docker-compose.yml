@@ -38,7 +38,7 @@ services:
 
   # Spark Master
   spark-master:
-    image: bitnami/spark:3.3
+    image: spark:python3
     environment:
       - SPARK_MODE=master
     ports:
@@ -49,7 +49,7 @@ services:
 
   # Spark Worker
   spark-worker:
-    image: bitnami/spark:3.3
+    image: spark:python3
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
