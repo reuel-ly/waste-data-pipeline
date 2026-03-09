@@ -13,4 +13,5 @@ KAFKA_TOPIC = "weather"
 SPARK_APP_NAME = "WeatherPipeline"
 
 #MongoDB
-MONGO_URI = "mongodb://localhost:27017/weather_db"
+MONGO_URI = os.getenv("MONGO_URI")
+MONGO_DB = os.getenv("MONGO_DB")
