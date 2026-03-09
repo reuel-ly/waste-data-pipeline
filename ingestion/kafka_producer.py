@@ -7,13 +7,10 @@ from datetime import datetime
 from kafka import KafkaProducer
 from config.settings import (
     KAFKA_BROKER,
-    KAFKA_TOPIC
+    KAFKA_TOPIC,
+    OPENWEATHER_KEY,
+    OPENWEATHER_URL
 )
-# Load API keys from .env
-from dotenv import load_dotenv
-load_dotenv()
-OPENWEATHER_KEY = os.getenv("OPENWEATHER_KEY")
-OPENWEATHER_URL = os.getenv("OPENWEATHER_URL")
 
 # Connect to Kafka
 producer = KafkaProducer(
