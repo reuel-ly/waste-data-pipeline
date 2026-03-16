@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 try:
-    client = MongoClient(os.getenv("DATABASE_URL"))
-    db = client["weather_db"]
+    client = MongoClient(os.getenv("MONGO_URI"))
+    db = client["iot_db"]
     db.test.insert_one({"test": "Atlas connected!"})
     print("MongoDB Atlas connected successfully!")
     client.close()
