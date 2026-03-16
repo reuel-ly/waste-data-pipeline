@@ -73,6 +73,16 @@ services:
     networks:
       - pipeline-network
 
+  mosquitto:
+    image: eclipse-mosquitto:2.0.22
+    ports:
+      - "1883:1883"   # MQTT port
+      - "9001:9001"   # WebSocket port
+    volumes:
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    networks:
+      - pipeline-network
+
 networks:
   pipeline-network:
     driver: bridge
