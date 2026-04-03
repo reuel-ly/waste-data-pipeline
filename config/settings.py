@@ -22,3 +22,6 @@ MONGO_DB = os.getenv("MONGO_DB")
 MQTT_BROKER = "localhost"
 MQTT_PORT = 1883
 MQTT_TOPIC = "iot/sensors"
+
+# FastAPI
+API_URL = "http://127.0.0.1:8000/"
