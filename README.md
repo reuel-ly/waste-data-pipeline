@@ -1,13 +1,13 @@
 # Waste IoT Data Pipeline
 
-A real-time data pipeline that ingests IoT sensor data from ESP32 microcontrollers, streams it through Apache Kafka via MQTT, processes it with PySpark Structured Streaming, and stores it in MongoDB Atlas.
+A real-time data pipeline that ingests IoT sensor data from ESP32 microcontrollers, streams it through Apache Kafka via MQTT, processes it with PySpark Structured Streaming, stores it in MongoDB Atlas, and exposes it via a FastAPI REST API consumed by a Streamlit live dashboard.
 
 ---
 
 ## Architecture
 
 ```
-ESP32 Sensors → MQTT (Mosquitto) → Kafka → PySpark Streaming → MongoDB Atlas
+ESP32 Sensors → MQTT (Mosquitto) → Kafka → PySpark Streaming → MongoDB Atlas → FastAPI → Streamlit
                                                 ↑
                                OpenWeatherMap API (optional testing)
 ```
@@ -19,6 +19,8 @@ ESP32 Sensors → MQTT (Mosquitto) → Kafka → PySpark Streaming → MongoDB A
 | Ingestion | Apache Kafka | Message broker for real-time data streaming |
 | Processing | PySpark Structured Streaming | Cleans and transforms incoming data |
 | Storage | MongoDB Atlas | Stores processed sensor readings |
+| API | FastAPI | Exposes sensor data via REST endpoints |
+| Frontend | Streamlit | Live dashboard for visualizing sensor data |
 
 ---
 
@@ -29,6 +31,8 @@ ESP32 Sensors → MQTT (Mosquitto) → Kafka → PySpark Streaming → MongoDB A
 - **Apache Kafka + Zookeeper** — real-time message streaming
 - **Apache Spark (PySpark 4.1.1)** — structured streaming and data processing
 - **MongoDB Atlas** — cloud database for processed data
+- **FastAPI** — REST API layer for exposing sensor data
+- **Streamlit** — interactive live dashboard
 - **Docker + Docker Compose** — containerized infrastructure
 - **Python 3.10** — application code (conda environment on WSL2)
 - **OpenWeatherMap API** — optional weather data source for testing
@@ -39,6 +43,11 @@ ESP32 Sensors → MQTT (Mosquitto) → Kafka → PySpark Streaming → MongoDB A
 
 ```
 waste-data-pipeline/
+├── api/
+│   ├── __init__.py
+│   └── main.py                      # FastAPI REST API
+├── frontend/
+│   └── app.py                       # Streamlit dashboard
 ├── config/
 │   ├── __init__.py
 │   └── settings.py                  # centralized configuration
@@ -154,7 +163,7 @@ Upload the sketch via Arduino IDE. Always disconnect sensor wires during upload 
 
 ---
 
-## Running the IoT Pipeline
+## Running the Full IoT Pipeline
 
 **Terminal 1 — MQTT to Kafka Bridge:**
 ```bash
@@ -168,7 +177,19 @@ conda activate waste-pipeline
 python -m processing.spark_streaming_job_iot
 ```
 
-**Terminal 3 — Connect ESP32 via USB**
+**Terminal 3 — FastAPI:**
+```bash
+conda activate waste-pipeline
+uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+**Terminal 4 — Streamlit Dashboard:**
+```bash
+conda activate waste-pipeline
+streamlit run frontend/app.py
+```
+
+**Terminal 5 — Connect ESP32 via USB**
 - Open Arduino IDE Serial Monitor at `115200` baud
 - ESP32 automatically connects to WiFi and starts publishing sensor data
 
@@ -188,6 +209,50 @@ conda activate waste-pipeline
 python -m processing.spark_streaming_job
 ```
 
+**Terminal 3 — FastAPI:**
+```bash
+uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+**Terminal 4 — Streamlit Dashboard:**
+```bash
+streamlit run frontend/app.py
+```
+
+---
+
+## Testing FastAPI and Streamlit Only
+
+To test the API and dashboard without running the full pipeline, insert test data directly into MongoDB Atlas:
+
+```bash
+python test_insert.py
+```
+
+Then run only FastAPI and Streamlit:
+
+```bash
+# Terminal 1
+uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+
+# Terminal 2
+streamlit run frontend/app.py
+```
+
+---
+
+## API Endpoints
+
+Access the interactive API documentation at `http://localhost:8000/docs`
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/` | API health check |
+| GET | `/readings` | Get latest sensor readings |
+| GET | `/readings/{sensor_id}` | Get readings for a specific sensor |
+| GET | `/stats` | Get summary statistics per sensor |
+| GET | `/latest` | Get most recent reading per sensor |
+
 ---
 
 ## Docker Services
@@ -201,7 +266,11 @@ python -m processing.spark_streaming_job
 | MongoDB | 27017 | Local MongoDB (dev only) |
 | Mosquitto | 1883 / 9001 | MQTT broker for ESP32 |
 
-Access the **Spark UI** at `http://localhost:8080`
+| Service | URL | Description |
+|---|---|---|
+| Spark UI | http://localhost:8080 | Monitor Spark jobs |
+| FastAPI Docs | http://localhost:8000/docs | Interactive API documentation |
+| Streamlit | http://localhost:8501 | Live sensor dashboard |
 
 ---
 
@@ -255,6 +324,10 @@ pyspark==4.1.1
 pymongo[srv]
 kafka-python
 paho-mqtt
+fastapi
+uvicorn
+streamlit
+pandas
 python-dotenv
 requests
 ```
@@ -262,7 +335,8 @@ requests
 ---
 
 ## Notes
-- MongoDB Atlas free tier supports up to **512MB** of storage
-- WSL2 IP changes on every restart — re-run the port forwarding PowerShell command if ESP32 can't connect
+
+- WSL2 IP changes on every restart: re-run the port forwarding PowerShell command if ESP32 can't connect
 - Always use `docker-compose down` (not `-v`) to preserve MongoDB data between sessions
 - Always disconnect sensor wires before uploading code to ESP32 to avoid flash corruption
+- The `.env` file and `secrets.h` are excluded from version control
