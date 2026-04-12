@@ -1,6 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col, current_timestamp
-from pyspark.sql.types import StructType, StringType, FloatType
+from pyspark.sql.types import StructType, StringType, FloatType, BooleanType
 from config.settings import (
     SPARK_APP_NAME_IOT,
     MONGO_URI,
@@ -35,6 +35,7 @@ class SparkConnector:
             .add("location", StringType()) \
             .add("distance_cm", FloatType()) \
             .add("waste_level", FloatType()) \
+            .add("is_full", BooleanType()) \
             .add("unit", StringType())
 
     def read_from_kafka(self):
