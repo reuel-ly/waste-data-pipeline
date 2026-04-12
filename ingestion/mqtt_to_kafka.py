@@ -9,6 +9,8 @@ producer = KafkaProducer(
     value_serializer=lambda v: json.dumps(v).encode('utf-8')
 )
 
+
+
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         print("Connected to MQTT Broker!")
@@ -25,6 +27,7 @@ def on_message(client, userdata, msg):
 
         # Forward to Kafka
         producer.send(KAFKA_TOPIC_IOT, value=payload)
+        print(f"Sending to Kafka (type={type(payload)}): {payload}")
         print(f"Forwarded to Kafka: {payload['sensor_id']}")
 
     except Exception as e:
