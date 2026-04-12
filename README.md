@@ -186,7 +186,7 @@ uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 **Terminal 4 — Streamlit Dashboard:**
 ```bash
 conda activate waste-pipeline
-streamlit run frontend/app.py
+streamlit run app.py
 ```
 
 **Terminal 5 — Connect ESP32 via USB**
@@ -195,6 +195,17 @@ streamlit run frontend/app.py
 
 ---
 
+## Running the Pipeline with One Command
+
+```bash
+# Start everything
+./run_pipeline.sh
+
+# Stop everything
+./stop_pipeline.sh
+```
+
+---
 ## Running the Weather Pipeline (Optional Testing)
 
 **Terminal 1 — Kafka Producer:**
