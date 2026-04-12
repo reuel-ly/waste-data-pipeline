@@ -15,8 +15,8 @@ app = FastAPI(title="Waste IoT Pipeline API")
 
 @app.get("/")
 async def root():
-    data = list(collection.find().limit(5))
     try:
+        data = list(collection.find().limit(5))
         return {"message" : [serialize(doc) for doc in data]}
     except Exception as e:
         return {"error": str(e)}
@@ -26,15 +26,15 @@ async def root():
 def get_readings(limit: int = 10):
     readings = list(
         collection.find({}, {"_id": 0})
-        .sort("ingested_at", 1)
+        .sort("ingested_at", -1)
         .limit(limit)
     )
     return {"data" : readings}
 
 @app.get("/readings/{sensor_id}")
-def get_readings_by_sensor(sensor_id: str, limit: int=10):
-    readings=list(
-        collection.find({}, {"_id": 0})
+def get_readings_by_sensor(sensor_id: str, limit: int = 10):
+    readings = list(
+        collection.find({"sensor_id": sensor_id}, {"_id": 0})
         .sort("ingested_at", -1)
         .limit(limit)
     )
@@ -69,4 +69,19 @@ def get_latest():
     for item in latest:
         item["latest"].pop("_id", None)
     return {"data": latest}
+
+@app.get("/alerts")
+def get_full_bins():
+    """Return sensors where bin is currently full."""
+    full_bins = list(collection.aggregate([
+        {"$sort": {"ingested_at": -1}},
+        {"$group": {
+            "_id": "$sensor_id",
+            "latest": {"$first": "$$ROOT"}
+        }},
+        {"$match": {"latest.is_full": True}}
+    ]))
+    for item in full_bins:
+        item["latest"].pop("_id", None)
+    return {"full_bins": full_bins, "count": len(full_bins)}
 
